@@ -1,0 +1,59 @@
+version: "3.8"
+
+networks:
+  vlan5_macvlan:   # already exists, gives 172.16.5.9
+    external: true
+  ingress-internal:
+    external: true
+
+services:
+  traefik:
+    image: traefik:v3.1
+    container_name: traefik
+    restart: unless-stopped
+    networks:
+      vlan5_macvlan:
+        ipv4_address: 172.16.5.9
+      ingress-internal: {}              # second NIC inside Docker world
+    environment:
+#      CF_API_TOKEN: ${CF_API_TOKEN}
+      CLOUDFLARE_DNS_API_TOKEN: ${CF_API_TOKEN}
+#      CF_API_EMAIL: admin@specterrealm.com
+      TZ: ${TRAEFIK_TIMEZONE}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /volume1/docker/traefik/acme:/letsencrypt
+      - /volume1/docker/traefik/dynamic:/etc/traefik/dynamic:ro
+
+    command:
+      - --providers.docker=true
+      - --providers.docker.network=ingress-internal
+      - --providers.docker.exposedbydefault=false
+      - --providers.file.directory=/etc/traefik/dynamic
+      - --providers.file.watch=true
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.cf.acme.email=admin@specterrealm.com
+      - --certificatesresolvers.cf.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.cf.acme.dnschallenge.provider=cloudflare
+      - --api.dashboard=true
+      - --ping=true
+    labels:
+      - traefik.enable=true
+
+      # global HTTP -> HTTPS redirect (fixed)
+      - traefik.http.routers.http-catchall.rule=HostRegexp(`{host:.+}`)
+      - traefik.http.routers.http-catchall.entrypoints=web
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
+      - traefik.http.routers.http-catchall.middlewares=redirect-to-https
+      - traefik.http.routers.http-catchall.service=noop@internal
+
+      # Dashboard
+      - traefik.http.routers.traefik.rule=Host(`traefik-internal.specterrealm.com`)
+      - traefik.http.routers.traefik.entrypoints=websecure
+      - traefik.http.routers.traefik.tls.certresolver=cf
+      - traefik.http.routers.traefik.service=api@internal
+      - traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_API_USER}:${TRAEFIK_API_HASH}
+      - traefik.http.middlewares.lan-allow.ipwhitelist.sourcerange=172.16.0.0/12,10.0.0.0/8
+      - traefik.http.routers.traefik.middlewares=traefik-auth,lan-allow

@@ -1,0 +1,54 @@
+version: "3.8"
+
+networks:
+  ingress-internal:
+    external: true
+  vlan5_macvlan:
+    external: true
+
+services:
+  homepage-admin:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage-admin
+    restart: unless-stopped
+    environment:
+      TZ: "America/Denver"
+      # PUID: "1000"
+      # PGID: "1000"
+      HOMEPAGE_ALLOWED_HOSTS: "home.specterrealm.com,admin.specterrealm.com"
+    volumes:
+      - /volume1/docker/homepage/dashboards/admin:/app/config
+      - /volume1/docker/homepage/assets:/app/public/images:ro
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=ingress-internal
+      - traefik.http.routers.hp-admin.rule=Host(`admin.specterrealm.com`)
+      - traefik.http.routers.hp-admin.entrypoints=websecure
+      - traefik.http.routers.hp-admin.tls=true
+      - traefik.http.routers.hp-admin.tls.certresolver=cf
+      - traefik.http.routers.hp-admin.middlewares=sec-headers@file,admin-ratelimit@file
+    networks: [ingress-internal]
+
+  homepage-family:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage-family
+    restart: unless-stopped
+    environment:
+      TZ: "America/Denver"
+      # PUID: "1000"
+      # PGID: "1000"
+      HOMEPAGE_ALLOWED_HOSTS: "home.specterrealm.com,admin.specterrealm.com"
+    volumes:
+      - /volume1/docker/homepage/dashboards/family:/app/config
+      - /volume1/docker/homepage/assets:/app/public/images:ro
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=ingress-internal
+      - traefik.http.routers.hp-family.rule=Host(`home.specterrealm.com`)
+      - traefik.http.routers.hp-family.entrypoints=websecure
+      - traefik.http.routers.hp-family.tls=true
+      - traefik.http.routers.hp-family.tls.certresolver=cf
+      - traefik.http.routers.hp-family.middlewares=sec-headers@file,family-ratelimit@file
+    networks:
+      - ingress-internal
+      - vlan5_macvlan
