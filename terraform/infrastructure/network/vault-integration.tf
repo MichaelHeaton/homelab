@@ -1,28 +1,25 @@
 # Vault Integration for UniFi Network Management
 # This file configures Terraform to use HashiCorp Vault for sensitive data
 
-# Vault Provider Configuration
-provider "vault" {
-  # Vault configuration will be read from environment variables:
-  # VAULT_ADDR and VAULT_TOKEN
-}
+# Note: Vault provider configuration is in terraform.tf
 
 # Data source to read UniFi controller credentials from Vault
 data "vault_kv_secret_v2" "unifi_credentials" {
-  mount = "unifi"
-  name  = "controller-credentials"
+  mount = "homelab"
+  name  = "infrastructure/unifi/headquarters/api-credentials"
 }
 
 # Data source to read WLAN passwords from Vault
 data "vault_kv_secret_v2" "wlan_passwords" {
-  mount = "unifi"
-  name  = "wlan-passwords"
+  mount = "homelab"
+  name  = "infrastructure/unifi/headquarters/wlan-passwords"
 }
 
 # Local values for UniFi controller configuration
 locals {
   unifi_username = data.vault_kv_secret_v2.unifi_credentials.data["unifi_username"]
   unifi_password = data.vault_kv_secret_v2.unifi_credentials.data["unifi_password"]
+  unifi_api_key  = data.vault_kv_secret_v2.unifi_credentials.data["unifi_api_key"]
 
   # WLAN passwords from Vault
   wlan_skynet_global_password = data.vault_kv_secret_v2.wlan_passwords.data["wlan_skynet_global_password"]
