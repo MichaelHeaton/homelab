@@ -15,6 +15,8 @@ resource "consul_service" "infrastructure" {
   meta = each.value.meta
 
   check {
+    name     = "${each.value.name}-health"
+    check_id = "${each.value.name}-health"
     http     = each.value.check.http
     interval = each.value.check.interval
     timeout  = each.value.check.timeout
@@ -35,6 +37,8 @@ resource "consul_service" "applications" {
   meta = each.value.meta
 
   check {
+    name     = "${each.value.name}-health"
+    check_id = "${each.value.name}-health"
     http     = each.value.check.http
     interval = each.value.check.interval
     timeout  = each.value.check.timeout
@@ -55,6 +59,8 @@ resource "consul_service" "monitoring" {
   meta = each.value.meta
 
   check {
+    name     = "${each.value.name}-health"
+    check_id = "${each.value.name}-health"
     http     = each.value.check.http
     interval = each.value.check.interval
     timeout  = each.value.check.timeout

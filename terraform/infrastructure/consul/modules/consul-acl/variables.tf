@@ -16,7 +16,6 @@ variable "acl_tokens" {
     description = string
     policies    = list(string)
     local       = bool
-    ttl         = optional(string)
   }))
   default = {}
 }
@@ -27,7 +26,6 @@ variable "service_tokens" {
     description = string
     policies    = list(string)
     local       = bool
-    ttl         = optional(string)
   }))
   default = {}
 }

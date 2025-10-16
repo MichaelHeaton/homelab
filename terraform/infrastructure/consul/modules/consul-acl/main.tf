@@ -17,7 +17,6 @@ resource "consul_acl_token" "tokens" {
   description = each.value.description
   policies    = each.value.policies
   local       = each.value.local
-  ttl         = each.value.ttl
 }
 
 # Create service tokens for applications
@@ -27,7 +26,6 @@ resource "consul_acl_token" "service_tokens" {
   description = each.value.description
   policies    = each.value.policies
   local       = each.value.local
-  ttl         = each.value.ttl
 }
 
 # Create anonymous token policy

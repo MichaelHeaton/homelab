@@ -2,12 +2,12 @@
 # This configuration manages Consul ACLs, services, and integrations
 
 terraform {
-  backend "consul" {
-    address = "consul.specterrealm.com:443"
-    path    = "terraform/state/consul/headquarters"
-    scheme  = "https"
-    lock    = true
-  }
+  # backend "consul" {
+  #   address = "consul.specterrealm.com:443"
+  #   path    = "terraform/state/consul/headquarters"
+  #   scheme  = "https"
+  #   lock    = true
+  # }
 
   required_providers {
     consul = {

@@ -1,0 +1,41 @@
+version: "3.8"
+
+networks:
+  ingress-internal:
+    external: true
+
+services:
+  consul:
+    image: hashicorp/consul:1.17
+    container_name: consul
+    restart: unless-stopped
+    networks: [ingress-internal]
+    environment:
+      SKIP_CHOWN: "true"
+      # add CONSUL_HTTP_TOKEN later after ACL bootstrap
+      CONSUL_HTTP_TOKEN_FILE: "/run/secrets/consul_ui_admin" # use file, not env
+    command:
+      [
+        "consul",
+        "agent",
+        "-server",
+        "-config-dir=/consul/config",
+        "-data-dir=/consul/data",
+      ]
+    volumes:
+      - /volume1/docker/consul/config:/consul/config:ro
+      - /volume1/docker/consul/data:/consul/data
+      - /volume1/docker/consul/secrets/ui-admin:/run/secrets/consul_ui_admin:ro
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=ingress-internal
+      - traefik.http.services.consul.loadbalancer.server.port=8500
+      - traefik.http.routers.consul.rule=Host(`consul.specterrealm.com`)
+      - traefik.http.routers.consul.entrypoints=websecure
+      - traefik.http.routers.consul.tls.certresolver=cf
+      - traefik.http.middlewares.consul-allow.ipwhitelist.sourcerange=172.16.0.0/12,10.0.0.0/8
+      - traefik.http.routers.consul.middlewares=consul-allow
+      - traefik.http.routers.consul-http.rule=Host(`consul.specterrealm.com`)
+      - traefik.http.routers.consul-http.entrypoints=web
+      - traefik.http.routers.consul-http.middlewares=redirect-to-https@docker
+      - traefik.http.routers.consul-http.priority=100

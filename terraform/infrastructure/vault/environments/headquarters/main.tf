@@ -2,12 +2,12 @@
 # This configuration manages Vault policies, auth methods, and secret engines
 
 terraform {
-  backend "consul" {
-    address = "consul.specterrealm.com:443"
-    path    = "terraform/state/vault/headquarters"
-    scheme  = "https"
-    lock    = true
-  }
+  # backend "consul" {
+  #   address = "consul.specterrealm.com:443"
+  #   path    = "terraform/state/vault/headquarters"
+  #   scheme  = "https"
+  #   lock    = true
+  # }
 
   required_providers {
     vault = {
