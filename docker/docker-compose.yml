@@ -1,0 +1,52 @@
+# Homelab Docker Services
+# Main orchestration file for all homelab services
+
+version: "3.8"
+
+networks:
+  vlan5_macvlan:
+    external: true
+  ingress-internal:
+    external: true
+
+services:
+  # Traefik reverse proxy (must be first)
+  traefik:
+    extends:
+      file: ./services/traefik/docker-compose.yml
+      service: traefik
+
+  # Vault service
+  vault:
+    extends:
+      file: ./services/vault/docker-compose.yml
+      service: vault
+
+  # Consul service
+  consul:
+    extends:
+      file: ./services/consul/docker-compose.yml
+      service: consul
+
+  # Whoami test service
+  whoami:
+    extends:
+      file: ./services/whoami/docker-compose.yml
+      service: whoami
+
+  # Homepage dashboard
+  homepage-admin:
+    extends:
+      file: ./services/homepage/docker-compose.yml
+      service: homepage-admin
+
+  homepage-family:
+    extends:
+      file: ./services/homepage/docker-compose.yml
+      service: homepage-family
+
+  # Add other services here as they are created
+  # monitoring:
+  #   extends:
+  #     file: ./services/monitoring/docker-compose.yml
+  #     service: monitoring
