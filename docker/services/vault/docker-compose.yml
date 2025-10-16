@@ -1,0 +1,29 @@
+version: "3.8"
+networks:
+  ingress-internal:
+    external: true
+
+services:
+  vault:
+    image: hashicorp/vault:1.17
+    container_name: vault
+    restart: unless-stopped
+    cap_add: [IPC_LOCK]
+    networks: [ingress-internal]
+    # Do NOT set VAULT_LOCAL_CONFIG anywhere
+    environment:
+      VAULT_API_ADDR: "https://vault.specterrealm.com"
+      VAULT_CLUSTER_ADDR: "https://vault.specterrealm.com:8201" # ✅ Fixed cluster address
+    command:
+      ["vault", "server", "-config=/vault/config/vault.hcl", "-log-level=debug"]
+    volumes:
+      - /volume1/docker/vault/config:/vault/config
+      - /volume1/docker/vault/data:/vault/file
+      - /volume1/docker/vault/tls:/vault/tls:ro
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=ingress-internal
+      - traefik.http.services.vault.loadbalancer.server.port=8200
+      - traefik.http.routers.vault.rule=Host(`vault.specterrealm.com`)
+      - traefik.http.routers.vault.entrypoints=websecure
+      - traefik.http.routers.vault.tls.certresolver=cf
